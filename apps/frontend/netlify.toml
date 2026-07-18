@@ -1,10 +1,17 @@
 [build]
   command = "pnpm build"
   publish = ".next"
+  # Tell Netlify which package.json to use
+  package_root = "apps/frontend"
 
 [build.environment]
   NODE_VERSION = "20"
   NEXT_PUBLIC_API_URL = "https://intabide-nginx.onrender.com"
+  PNPM_VERSION = "11.14.0"
+  # Ignore root workspace check
+  PNPM_IGNORE_WORKSPACE_ROOT_CHECK = "true"
+  # Set pnpm store directory
+  PNPM_HOME = "/opt/buildhome/.pnpm-store"
 
 [[redirects]]
   from = "/api/*"
