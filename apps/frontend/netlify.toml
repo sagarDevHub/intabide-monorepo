@@ -1,5 +1,6 @@
 [build]
-  command = "pnpm build"
+  # ✅ Fix: Automatically sync and build the Prisma client before triggering next build
+  command = "npx prisma generate && pnpm build"
   publish = ".next"
 
 [build.environment]
