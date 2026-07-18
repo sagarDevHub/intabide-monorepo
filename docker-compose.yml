@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Nginx Gateway
+  nginx:
+    build:
+      context: ./infrastructure/nginx
+      dockerfile: Dockerfile
+    container_name: intabide-nginx
+    ports:
+      - '8080:80'
+    depends_on:
+      - ai-service
+      - frontend
+    networks:
+      - intabide-network
+
+  # AI Service
+  ai-service:
+    build:
+      context: ./apps/ai-service
+      dockerfile: Dockerfile
+    container_name: intabide-ai-service
+    ports:
+      - '${PORT:-3001}:3001'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3001
+    env_file:
+      - .env
+    networks:
+      - intabide-network
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: intabide-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/ai}
+    env_file:
+      - .env
+    depends_on:
+      - ai-service
+    networks:
+      - intabide-network
+
+networks:
+  intabide-network:
+    driver: bridge

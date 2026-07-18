@@ -1,12 +1,15 @@
 FROM node:20-alpine
 
+# Install pnpm
+RUN npm install -g pnpm
+
 WORKDIR /app
 
 # Copy package files
 COPY package.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with pnpm
+RUN pnpm install
 
 # Copy source code
 COPY index.js ./
