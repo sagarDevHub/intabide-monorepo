@@ -9,6 +9,7 @@ import { PlaygroundSkeleton } from '@/components/shared/playground-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Play, Square, RefreshCw } from 'lucide-react';
+import { AIPanel } from '@/components/ai/ai-panel';
 
 // Mock data - will be replaced with real API calls
 const MOCK_FILES = [
@@ -163,6 +164,9 @@ export default function PlaygroundPage() {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+      <div className="w-80 border-l h-full overflow-hidden">
+        <AIPanel selectedCode={fileContent} selectedFile={selectedFile} />
       </div>
     </div>
   );
