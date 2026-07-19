@@ -1,0 +1,20 @@
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22.14.0"
+  PNPM_VERSION = "10.5.2"
+  NEXT_PUBLIC_API_URL = "https://intabide-nginx.onrender.com"
+
+# Redirect API calls to Render backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://intabide-nginx.onrender.com/api/:splat"
+  status = 200
+
+# Handle client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
