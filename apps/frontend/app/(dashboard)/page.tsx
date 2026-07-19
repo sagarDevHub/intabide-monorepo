@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { CreateProjectButton } from '@/components/dashboard/create-project-button';
 import { ImportGitHubModal } from '@/components/dashboard/import-github-modal';
 import { ProjectCard } from '@/components/dashboard/project-card';
-import { useGithubImport } from '@/hooks/use-github-import';
 import { useLocalFolder } from '@/hooks/use-local-folder';
+import { useGitHubImport } from '@/hooks/use-github-import';
 
 // Temporary mock data - will be replaced with real API calls
 const MOCK_PROJECTS = [
@@ -41,7 +41,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState(MOCK_PROJECTS);
   const [search, setSearch] = useState('');
 
-  const { importRepo, loading: githubLoading } = useGithubImport();
+  const { importRepo, loading: githubLoading } = useGitHubImport();
   const { openFolder, loading: folderLoading } = useLocalFolder();
 
   const filteredProjects = projects.filter(p =>
