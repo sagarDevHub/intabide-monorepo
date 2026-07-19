@@ -1,94 +1,89 @@
 import { PrismaClient } from '@prisma/client';
-import { betterAuth } from 'better-auth';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { redis } from './redis';
+import { hashPassword, comparePassword, generateToken, verifyToken } from './utils';
+import { cache } from './redis';
 
 const prisma = new PrismaClient();
 
-export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
-  }),
-  secret: process.env.BETTER_AUTH_SECRET || 'default-secret-change-me',
+// Sign Up
+export const signUp = async (email: string, password: string, name?: string) => {
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new Error('User already exists');
+  }
 
-  // 1. GLOBAL REDIS SECONDARY STORAGE CAPABILITY
-  secondaryStorage: {
-    get: async (key: string) => {
-      const data = await redis.get(key);
-      return data ? String(data) : null;
-    },
-    set: async (key: string, value: string, ttl?: number) => {
-      if (ttl) {
-        await redis.set(key, value, { ex: ttl });
-      } else {
-        await redis.set(key, value);
-      }
-    },
-    delete: async (key: string) => {
-      await redis.del(key);
-    },
-  },
+  // Hash password
+  const hashedPassword = await hashPassword(password);
 
-  // 2. RATE LIMIT CONFIGURATION USING SECONDARY STORAGE
-  rateLimit: {
-    window: 60,
-    max: 10,
-    storage: 'secondary-storage', // Offloads counters cleanly to Redis via the layer above
-  },
-
-  // Session management
-  session: {
-    expiresIn: 7 * 24 * 60 * 60,
-    updateAge: 24 * 60 * 60,
-  },
-
-  // Email/Password authentication
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false,
-  },
-
-  // Social providers
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+  // Create user
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      name,
     },
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-  },
+  });
 
-  // Callbacks
-  callbacks: {
-    session: async ({ session, user }: any) => {
-      return {
-        session,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          avatar: user.avatar,
-        },
-      };
-    },
-  },
+  // Generate token
+  const token = generateToken(user.id, user.email);
 
-  // Database hooks
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (user: any) => {
-          console.log(`New user created: ${user.email}`);
-          await redis.hset(`user:${user.id}`, {
-            id: user.id,
-            email: user.email,
-            name: user.name || '',
-            createdAt: user.createdAt.toString(),
-          });
-        },
-      },
-    },
-  },
-});
+  // Cache user
+  await cache.set(`user:${user.id}`, { id: user.id, email: user.email, name: user.name });
+
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    token,
+  };
+};
+
+// Sign In
+export const signIn = async (email: string, password: string) => {
+  // Find user
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    throw new Error('Invalid email or password');
+  }
+
+  // Verify password
+  const isValid = await comparePassword(password, user.password);
+  if (!isValid) {
+    throw new Error('Invalid email or password');
+  }
+
+  // Generate token
+  const token = generateToken(user.id, user.email);
+
+  // Cache user
+  await cache.set(`user:${user.id}`, { id: user.id, email: user.email, name: user.name });
+
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    token,
+  };
+};
+
+// Get User by ID
+export const getUserById = async (userId: string) => {
+  // Try cache first
+  const cached = await cache.get<{ id: string; email: string; name: string }>(`user:${userId}`);
+  if (cached) {
+    return cached;
+  }
+
+  // Get from database
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, avatar: true },
+  });
+
+  if (user) {
+    await cache.set(`user:${userId}`, user);
+  }
+
+  return user;
+};
+
+// Validate Token
+export const validateToken = (token: string) => {
+  return verifyToken(token);
+};

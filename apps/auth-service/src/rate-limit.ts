@@ -16,7 +16,6 @@ export class RateLimiter {
 
   async check(key: string): Promise<{ allowed: boolean; remaining: number; resetIn: number }> {
     const redisKey = `rate_limit:${key}`;
-    const now = Date.now();
 
     const count = await redis.get(redisKey);
     const currentCount = count ? parseInt(count as string, 10) : 0;
@@ -35,10 +34,13 @@ export class RateLimiter {
       await redis.expire(redisKey, this.windowSeconds);
     }
 
+    const ttl = await redis.ttl(redisKey);
+
     return {
       allowed: true,
-      remaining: Math.max(0, this.maxRequests - this.windowSeconds),
-      resetIn: (await redis.ttl(redisKey)) || this.windowSeconds,
+      // Fixed Logic: Subtract newCount from maxRequests to output remaining budget
+      remaining: Math.max(0, this.maxRequests - newCount),
+      resetIn: ttl > 0 ? ttl : this.windowSeconds,
     };
   }
 
