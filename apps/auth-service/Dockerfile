@@ -1,27 +1,29 @@
-FROM node:20-alpine
-
-# Install pnpm
+FROM node:20-alpine AS base
 RUN npm install -g pnpm
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/auth-service/package.json ./apps/auth-service/
 
-# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source
-COPY . .
+COPY apps/auth-service/ ./apps/auth-service/
 
-# Generate Prisma client
-RUN pnpx prisma generate
+WORKDIR /app/apps/auth-service
 
-# Build the service
+RUN pnpm prisma generate
+
 RUN pnpm build
 
-# Expose port
-EXPOSE 3002
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Start the service
+COPY --from=base /app/apps/auth-service/dist ./dist
+COPY --from=base /app/apps/auth-service/node_modules ./node_modules
+COPY --from=base /app/apps/auth-service/package.json ./package.json
+
+EXPOSE 3002
+ENV NODE_ENV=production
+
 CMD ["node", "dist/index.js"]
