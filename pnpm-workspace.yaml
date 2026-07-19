@@ -1,6 +1,6 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
+  - apps/*
+  - packages/*
 allowBuilds:
   '@google/genai': true
   '@prisma/client': true
@@ -10,3 +10,8 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unrs-resolver: true
+onlyBuiltDependencies:
+  - '@google/genai'
+  - protobufjs
+  - sharp
+  - unrs-resolver
