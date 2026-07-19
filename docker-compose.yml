@@ -11,6 +11,7 @@ services:
       - '8080:80'
     depends_on:
       - ai-service
+      - auth-service
       - frontend
     networks:
       - intabide-network
@@ -31,35 +32,32 @@ services:
     networks:
       - intabide-network
 
-  # In the services section, add:
-auth-service:
-  build:
-    context: ./apps/auth-service
-    dockerfile: Dockerfile
-  container_name: intabide-auth-service
-  ports:
-    - '3002:3002'
-  environment:
-    - NODE_ENV=${NODE_ENV:-production}
-    - PORT=3002
-    - DATABASE_URL=${DATABASE_URL}
-    - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
-    - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
-    - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-    - BETTER_AUTH_URL=${BETTER_AUTH_URL}
-    - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-    - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-    - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-    - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-    - FRONTEND_URL=${FRONTEND_URL}
-    - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-  env_file:
-    - .env
-  networks:
-    - intabide-network
-  depends_on:
-    - postgres
-    - redis
+  # Auth Service
+  auth-service:
+    build:
+      context: ./apps/auth-service
+      dockerfile: Dockerfile
+    container_name: intabide-auth-service
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3002
+      - DATABASE_URL=${DATABASE_URL}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    env_file:
+      - .env
+    networks:
+      - intabide-network
 
   # Frontend (Next.js)
   frontend:

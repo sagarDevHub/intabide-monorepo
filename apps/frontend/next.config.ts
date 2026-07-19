@@ -2,9 +2,8 @@ import type { NextConfig } from 'next';
 import path from 'path';
 
 const nextConfig: NextConfig = {
-  // Set the root directory for Turbopack
   turbopack: {
-    root: path.join(__dirname, '../..'), // Points to monorepo root
+    root: path.join(__dirname, '../..'),
   },
   images: {
     remotePatterns: [

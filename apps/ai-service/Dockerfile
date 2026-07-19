@@ -1,16 +1,12 @@
 FROM node:20-alpine
 
-# Install pnpm
-RUN npm install -g pnpm
-
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json package-lock.json* ./
 
-# Install dependencies with pnpm
-RUN pnpm install
-
+# Install dependencies cleanly using standard npm
+RUN npm install --omit=dev
 # Copy source code
 COPY index.js ./
 

@@ -1,20 +1,11 @@
 {
   "name": "intabide-monorepo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "10.5.2",
-      "onFail": "download"
-    }
-  },
-  "type": "module"
+    "dev:ai": "npm run dev --workspace=ai-service",
+    "dev:auth": "npm run dev --workspace=auth-service",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build:auth": "npm run build --workspace=auth-service"
+  }
 }
