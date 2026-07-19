@@ -62,6 +62,7 @@ export function ProjectCard({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Star Toggle Button */}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onStar?.(id)}>
             <Star
               className={`h-4 w-4 transition-all ${
@@ -69,11 +70,12 @@ export function ProjectCard({
               }`}
             />
           </Button>
+
+          {/* Action Dropdown Menu */}
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
+            {/* FIXED: Removed asChild and styled the Base UI Trigger directly as the button */}
+            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] cursor-pointer">
+              <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Rename</DropdownMenuItem>
@@ -88,7 +90,14 @@ export function ProjectCard({
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>Updated {new Date(updatedAt).toLocaleDateString()}</span>
+            <span>
+              Updated{' '}
+              {new Date(updatedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+              })}
+            </span>
           </div>
         </div>
       </CardContent>

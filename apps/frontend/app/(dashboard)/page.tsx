@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { CreateProjectButton } from '@/components/dashboard/create-project-button';
 import { ImportGitHubModal } from '@/components/dashboard/import-github-modal';
 import { ProjectCard } from '@/components/dashboard/project-card';
+import { useGithubImport } from '@/hooks/use-github-import';
+import { useLocalFolder } from '@/hooks/use-local-folder';
 
 // Temporary mock data - will be replaced with real API calls
 const MOCK_PROJECTS = [
@@ -40,6 +41,9 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState(MOCK_PROJECTS);
   const [search, setSearch] = useState('');
 
+  const { importRepo, loading: githubLoading } = useGithubImport();
+  const { openFolder, loading: folderLoading } = useLocalFolder();
+
   const filteredProjects = projects.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -64,20 +68,34 @@ export default function DashboardPage() {
     setProjects(prev => [newProject, ...prev]);
   };
 
-  const handleImportGitHub = (url: string) => {
-    // Extract repo name from URL
-    const parts = url.split('/');
-    const repoName = parts[parts.length - 1]?.replace('.git', '') || 'imported-repo';
+  const handleImportGitHub = async (url: string) => {
+    const result = await importRepo(url);
+    if (result) {
+      const newProject = {
+        id: Date.now().toString(),
+        name: result.repo,
+        template: 'nextjs' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        starred: false,
+      };
+      setProjects(prev => [newProject, ...prev]);
+    }
+  };
 
-    const newProject = {
-      id: Date.now().toString(),
-      name: repoName,
-      template: 'nextjs' as const,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      starred: false,
-    };
-    setProjects(prev => [newProject, ...prev]);
+  const handleOpenFolder = async () => {
+    const files = await openFolder();
+    if (files) {
+      const newProject = {
+        id: Date.now().toString(),
+        name: 'Local Folder',
+        template: 'nextjs' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        starred: false,
+      };
+      setProjects(prev => [newProject, ...prev]);
+    }
   };
 
   const starredProjects = filteredProjects.filter(p => p.starred);

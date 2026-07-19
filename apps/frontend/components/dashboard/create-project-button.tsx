@@ -46,8 +46,8 @@ export function CreateProjectButton({ onProjectCreated }: CreateProjectButtonPro
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>
+      <DialogTrigger asChild>
+        <Button variant="default">
           <Plus className="h-4 w-4 mr-2" />
           New Project
         </Button>
@@ -72,19 +72,25 @@ export function CreateProjectButton({ onProjectCreated }: CreateProjectButtonPro
             <Label>Template</Label>
             <div className="grid grid-cols-2 gap-2">
               {templates.map(t => (
-                <button
+                <div
                   key={t.id}
-                  type="button"
                   className={`p-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
                     template === t.id
                       ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-primary/30'
                   }`}
                   onClick={() => setTemplate(t.id as 'nextjs' | 'express')}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setTemplate(t.id as 'nextjs' | 'express');
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className="font-medium text-sm">{t.label}</div>
                   <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
