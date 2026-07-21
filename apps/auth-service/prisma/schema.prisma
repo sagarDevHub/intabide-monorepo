@@ -10,7 +10,7 @@ datasource db {
 model User {
     id            String  @id @default(cuid())
     email         String  @unique
-    password      String
+    password      String?
     name          String?
     avatar        String?
     emailVerified Boolean @default(false)
@@ -18,8 +18,13 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    provider   String?
+    providerId String?
+
     otps     OTP[]
     sessions Session[]
+
+    @@unique([provider, providerId])
 }
 
 model OTP {

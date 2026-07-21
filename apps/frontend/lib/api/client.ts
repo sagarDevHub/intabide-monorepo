@@ -1,94 +1,82 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-type RequestBody = Record<string, unknown> | null;
-type RequestOptions = RequestInit & { headers?: Record<string, string> };
-
-interface ApiResponse<T = unknown> {
-  data?: T;
-  error?: string;
-  status?: number;
-}
-
 export const api = {
-  get: async <T = unknown>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'GET',
-      ...options,
-      headers: {
-        'Content-type': 'application/json',
-        ...options?.headers,
-      },
-    });
-    const data = await response.json();
+  auth: {
+    signUp: async (email: string, password: string, name: string) => {
+      const response = await fetch(`${API_URL}/api/auth/sign-up`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
+      return response.json();
+    },
 
-    return {
-      data: data as T,
-      status: response.status,
-      error: response.status >= 400 ? 'Request failed' : undefined,
-    };
-  },
+    verifyEmail: async (email: string, otp: string) => {
+      const response = await fetch(`${API_URL}/api/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      return response.json();
+    },
 
-  post: async <T = unknown>(
-    endpoint: string,
-    body?: RequestBody,
-    options?: RequestOptions
-  ): Promise<ApiResponse<T>> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'POST',
-      ...options,
-      headers: {
-        'Content-type': 'application/json',
-        ...options?.headers,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const data = await response.json();
-    return {
-      data: data as T,
-      status: response.status,
-      error: response.status >= 400 ? 'Request failed' : undefined,
-    };
-  },
+    resendVerification: async (email: string) => {
+      const response = await fetch(`${API_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return response.json();
+    },
 
-  put: async <T = unknown>(
-    endpoint: string,
-    body?: RequestBody,
-    options?: RequestOptions
-  ): Promise<ApiResponse<T>> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'PUT',
-      ...options,
-      headers: {
-        'Content-type': 'application/json',
-        ...options?.headers,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const data = await response.json();
-    return {
-      data: data as T,
-      status: response.status,
-      error: response.status >= 400 ? 'Request failed' : undefined,
-    };
-  },
+    signIn: async (email: string, password: string) => {
+      const response = await fetch(`${API_URL}/api/auth/sign-in`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      return response.json();
+    },
 
-  delete: async <T = unknown>(
-    endpoint: string,
-    options?: RequestOptions
-  ): Promise<ApiResponse<T>> => {
-    const response = await fetch(`${API_URL},${endpoint}`, {
-      method: 'DELETE',
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-    });
-    const data = await response.json();
-    return {
-      data: data as T,
-      status: response.status,
-      error: response.status >= 400 ? 'Request failed' : undefined,
-    };
+    getSession: async (token: string) => {
+      const response = await fetch(`${API_URL}/api/auth/session`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.json();
+    },
+
+    logout: async () => {
+      const response = await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+      });
+      return response.json();
+    },
+
+    forgotPassword: async (email: string) => {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      return response.json();
+    },
+
+    verifyResetOTP: async (email: string, otp: string) => {
+      const response = await fetch(`${API_URL}/api/auth/verify-reset-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      return response.json();
+    },
+
+    resetPassword: async (email: string, newPassword: string) => {
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, newPassword }),
+      });
+      return response.json();
+    },
   },
 };

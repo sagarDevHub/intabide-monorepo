@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { signUp, signIn, getUserById, validateToken, resetPassword, otp } from './auth';
 import { redis } from './redis';
 import { z } from 'zod';
+import { githubAuth, googleAuth } from './oauth';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -27,8 +28,13 @@ const authLimiter = rateLimit({
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+      'http://localhost:3000',
+      'https://intabide.netlify.app',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   })
 );
 app.use(express.json());
@@ -208,6 +214,51 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ error: error.errors[0].message });
     }
     res.status(400).json({ error: error.message });
+  }
+});
+
+// ============= OAUTH ROUTES =============
+
+// GitHub OAuth
+app.get('/api/auth/github', (req, res) => {
+  const url = githubAuth.getAuthUrl();
+  res.redirect(url);
+});
+
+app.get('/api/auth/github/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      throw new Error('No code provided');
+    }
+    const { user, token } = await githubAuth.handleCallback(code as string);
+    // Redirect to frontend with token
+    res.redirect(
+      `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
+    );
+  } catch (error: any) {
+    res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
+  }
+});
+
+// Google OAuth
+app.get('/api/auth/google', (req, res) => {
+  const url = googleAuth.getAuthUrl();
+  res.redirect(url);
+});
+
+app.get('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      throw new Error('No code provided');
+    }
+    const { user, token } = await googleAuth.handleCallback(code as string);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
+    );
+  } catch (error: any) {
+    res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
   }
 });
 
