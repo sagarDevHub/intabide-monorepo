@@ -27,8 +27,9 @@ export default function OAuthCallbackPage() {
         setUser(user);
         setToken(token);
         toast.success('Signed in successfully!');
-        router.push('/dashboard');
+        router.push('/');
       } catch (err) {
+        console.error(err);
         toast.error('Invalid authentication data');
         router.push('/sign-in');
       }

@@ -219,48 +219,75 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // ============= OAUTH ROUTES =============
 
-// GitHub OAuth
+// GitHub OAuth - Initiate
 app.get('/api/auth/github', (req, res) => {
-  const url = githubAuth.getAuthUrl();
-  res.redirect(url);
+  console.log('🔑 GitHub OAuth initiated');
+  try {
+    const url = githubAuth.getAuthUrl();
+    console.log('📤 Redirecting to GitHub:', url);
+    res.redirect(url);
+  } catch (error: any) {
+    console.error('❌ GitHub OAuth error:', error.message);
+    res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
+  }
 });
 
+// GitHub OAuth - Callback
 app.get('/api/auth/github/callback', async (req, res) => {
+  console.log('🔑 GitHub OAuth callback received');
+  console.log('📥 Query params:', req.query);
   try {
     const { code } = req.query;
     if (!code) {
       throw new Error('No code provided');
     }
+    console.log('📤 Exchanging code for token...');
     const { user, token } = await githubAuth.handleCallback(code as string);
-    // Redirect to frontend with token
-    res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
-    );
+    console.log('✅ GitHub auth successful for:', user.email);
+    const redirectUrl = `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`;
+    console.log('🔄 Redirecting to:', redirectUrl);
+    res.redirect(redirectUrl);
   } catch (error: any) {
+    console.error('❌ GitHub callback error:', error.message);
     res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
   }
 });
 
-// Google OAuth
+// Google OAuth - Initiate
 app.get('/api/auth/google', (req, res) => {
-  const url = googleAuth.getAuthUrl();
-  res.redirect(url);
+  console.log('🔑 Google OAuth initiated');
+  try {
+    const url = googleAuth.getAuthUrl();
+    console.log('📤 Redirecting to Google:', url);
+    res.redirect(url);
+  } catch (error: any) {
+    console.error('❌ Google OAuth error:', error.message);
+    res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
+  }
 });
 
+// Google OAuth - Callback
 app.get('/api/auth/google/callback', async (req, res) => {
+  console.log('🔑 Google OAuth callback received');
+  console.log('📥 Query params:', req.query);
   try {
     const { code } = req.query;
     if (!code) {
       throw new Error('No code provided');
     }
+    console.log('📤 Exchanging code for token...');
     const { user, token } = await googleAuth.handleCallback(code as string);
-    res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`
-    );
+    console.log('✅ Google auth successful for:', user.email);
+    const redirectUrl = `${process.env.FRONTEND_URL}/oauth-callback?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`;
+    console.log('🔄 Redirecting to:', redirectUrl);
+    res.redirect(redirectUrl);
   } catch (error: any) {
+    console.error('❌ Google callback error:', error.message);
     res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=${encodeURIComponent(error.message)}`);
   }
 });
+
+app.set('trust proxy', true);
 
 // Test route
 app.get('/test', (req, res) => {
